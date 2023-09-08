@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+echo "Running gunicorn with uvicorn workers..."
+gunicorn --config gunicorn.conf.py main:app

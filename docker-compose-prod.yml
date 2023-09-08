@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/prod/Dockerfile
+    ports:
+      - "8888:8888"
+    env_file:
+      - .env
+    depends_on:
+      - caddy
+    networks:
+      - inspector-net
+    labels:
+      caddy: inspector.zube.dev
+      caddy.reverse_proxy: "{{upstreams 8888}}"
+    restart: unless-stopped
+    stdin_open: true  # docker run -i
+    tty: true         # docker run -t
+
+  caddy:
+    image: lucaslorentz/caddy-docker-proxy:2.8-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - CADDY_INGRESS_NETWORK=inspector-net
+    networks:
+      - inspector-net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - inspector-caddy-data:/data
+    restart: unless-stopped
+
+volumes:
+  inspector-db-data:
+  inspector-caddy-data: {}
+
+networks:
+  inspector-net:

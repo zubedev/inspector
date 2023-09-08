@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    ports:
+      - "${UVICORN_PORT}:${UVICORN_PORT}"
+    volumes:
+      - .:/inspector
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - inspector-net
+    stdin_open: true  # docker run -i
+    tty: true         # docker run -t
+
+networks:
+  inspector-net:
