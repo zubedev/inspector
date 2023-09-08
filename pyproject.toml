@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "inspector"
+version = "0.1.0"
+description = "API for Inspecting HTTP Requests"
+authors = ["Md Zubair Beg <inspector@zube.dev>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "~3.11"
+fastapi = "^0.103"
+uvicorn = {extras = ["standard"], version = "^0.23"}
+gunicorn = "^21.2"
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.4"
+black = "^23.7"
+mypy = "^1.5"
+ruff = "^0.0.287"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+line-length = 120
+# https://beta.ruff.rs/docs/rules
+extend-select = ["I", "N", "PT", "UP"]
+target-version = "py311"
+
+[tool.mypy]
+ignore_missing_imports = true
+strict = true
