@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+docker run --detach \
+    --name inspector \
+    --publish 8888:8888 \
+    --env-file inspector.env \
+    --network deputy-net \
+    --restart unless-stopped \
+    --label caddy=inspector.zube.dev \
+    --label caddy.reverse_proxy="{{upstreams 8888}}" \
+    ziibii88/inspector:latest /start
