@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,7 +28,7 @@ app.add_middleware(
 
 
 @app.get("/")
-async def root(request: Request) -> dict[str, Any]:
+async def root(request: Request):
     return {
         "url": request.url._url,
         "query_params": request.query_params,
