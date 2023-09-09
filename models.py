@@ -4,29 +4,24 @@ from pydantic import BaseModel, ConfigDict
 
 
 class RootResponse(BaseModel):
-    app_name: str
-    app_description: str
-    app_version: str
+    app_name: str = ""
+    app_description: str = ""
+    app_version: str = ""
 
 
 class HeadersResponse(BaseModel):
     # set from x-forwarded-*
-    ip: str
-    host: str
-    protocol: str
-    # set from request headers
-    user_agent: str
-    accept: str
-    accept_encoding: str
-    accept_language: str
-    cookie: str
+    ip: str = ""
+    host: str = ""
+    protocol: str = ""
+    country: str = ""
     # allow extra fields to be passed in
     model_config = ConfigDict(extra="allow")
 
 
 class CountryResponse(BaseModel):
-    ip: str
-    country: str
+    ip: str = ""
+    country: str = ""
 
 
 class GeoIpApiRtypeEnum(str, Enum):
@@ -35,7 +30,7 @@ class GeoIpApiRtypeEnum(str, Enum):
 
 
 class GeoIpApi(BaseModel):
-    url: str
-    rtype: GeoIpApiRtypeEnum
-    lookup: str
+    url: str = ""
+    rtype: GeoIpApiRtypeEnum = GeoIpApiRtypeEnum.json
+    lookup: str = ""
     delimiter: str = ""
