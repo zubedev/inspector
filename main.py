@@ -5,7 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import Settings
 from dependencies import get_settings
-from models import InfoResponse
+from models import CountryResponse, HeadersResponse, RootResponse
+from utils import ip_to_country
 
 settings = get_settings()
 
@@ -28,26 +29,47 @@ app.add_middleware(
 
 
 @app.get("/")
-async def root(request: Request):
-    return {
-        "url": request.url._url,
-        "query_params": request.query_params,
-        "path_params": request.path_params,
-        "scheme": request.url.scheme,
-        "method": request.method,
-        "headers": request.headers,
-        "cookies": request.cookies,
-    }
-
-
-@app.get("/info")
-async def info(settings: Annotated[Settings, Depends(get_settings)]) -> InfoResponse:
-    return InfoResponse(
+async def get_root(settings: Annotated[Settings, Depends(get_settings)]) -> RootResponse:
+    return RootResponse(
         app_name=settings.app_name,
         app_description=settings.app_description,
-        app_author=settings.app_author,
         app_version=settings.app_version,
     )
+
+
+@app.get("/headers")
+async def get_headers(request: Request) -> HeadersResponse:
+    headers_dict = dict(**request.headers)
+
+    # get the ip address of the client. First check the proxy headers, then the client host
+    client_ip = request.client.host if request.client else ""
+    proxy_ip = headers_dict.pop("x-forwarded-for", "")
+    headers_dict["ip"] = proxy_ip or client_ip
+
+    # set an appropriate host and protocol
+    headers_dict["host"] = headers_dict.pop("x-forwarded-host", request.url.hostname or "")
+    headers_dict["protocol"] = headers_dict.pop("x-forwarded-proto", request.url.scheme)
+
+    # get the country code for the ip address
+    headers_dict["country"] = await ip_to_country(headers_dict["ip"])
+
+    # replace "-" with "_" in the header names
+    headers_dict = {k.replace("-", "_"): v for k, v in headers_dict.items()}
+
+    return HeadersResponse(**headers_dict)
+
+
+@app.get("/country")
+async def get_country(request: Request) -> CountryResponse:
+    # get the ip address of the client. First check the proxy headers, then the client host
+    client_ip = request.client.host if request.client else ""
+    proxy_ip = request.headers.get("x-forwarded-for", "")
+    ip = proxy_ip or client_ip
+
+    # get the country code for the ip address
+    country = await ip_to_country(ip)
+
+    return CountryResponse(ip=ip, country=country)
 
 
 if __name__ == "__main__":
