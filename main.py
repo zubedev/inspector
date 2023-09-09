@@ -1,3 +1,5 @@
+import logging
+from logging.config import dictConfig
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Request
@@ -6,9 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import Settings
 from dependencies import get_settings
 from models import CountryResponse, HeadersResponse, RootResponse
-from utils import ip_to_country
+from utils import ip_to_country, request_to_ip
 
 settings = get_settings()
+
+# setup logging
+dictConfig(settings.logger_config)
+logger = logging.getLogger(settings.logger_name)
 
 app = FastAPI(
     debug=settings.debug,
@@ -29,7 +35,9 @@ app.add_middleware(
 
 
 @app.get("/")
-async def get_root(settings: Annotated[Settings, Depends(get_settings)]) -> RootResponse:
+async def get_root(request: Request, settings: Annotated[Settings, Depends(get_settings)]) -> RootResponse:
+    ip = request_to_ip(request)
+    logger.debug(f"Responding to request on / for {ip=}")
     return RootResponse(
         app_name=settings.app_name,
         app_description=settings.app_description,
@@ -39,12 +47,13 @@ async def get_root(settings: Annotated[Settings, Depends(get_settings)]) -> Root
 
 @app.get("/headers")
 async def get_headers(request: Request) -> HeadersResponse:
-    headers_dict = dict(**request.headers)
+    ip = request_to_ip(request)
 
-    # get the ip address of the client. First check the proxy headers, then the client host
-    client_ip = request.client.host if request.client else ""
-    proxy_ip = headers_dict.pop("x-forwarded-for", "")
-    headers_dict["ip"] = proxy_ip or client_ip
+    headers_dict = dict(**request.headers)
+    headers_dict["ip"] = ip
+    headers_dict.pop("x-forwarded-for", None)  # remove the proxy ip from the headers if it exists
+
+    logger.debug(f"Getting headers for {ip=}")
 
     # set an appropriate host and protocol
     headers_dict["host"] = headers_dict.pop("x-forwarded-host", request.url.hostname or "")
@@ -55,21 +64,19 @@ async def get_headers(request: Request) -> HeadersResponse:
 
     # replace "-" with "_" in the header names
     headers_dict = {k.replace("-", "_"): v for k, v in headers_dict.items()}
+    headers_response = HeadersResponse(**headers_dict)
 
-    return HeadersResponse(**headers_dict)
+    logger.debug(f"Responding to request on /headers for {ip=} headers={headers_response.model_dump()}")
+    return headers_response
 
 
 @app.get("/country")
 async def get_country(request: Request) -> CountryResponse:
-    # get the ip address of the client. First check the proxy headers, then the client host
-    client_ip = request.client.host if request.client else ""
-    proxy_ip = request.headers.get("x-forwarded-for", "")
-    ip = proxy_ip or client_ip
-
-    # get the country code for the ip address
+    ip = request_to_ip(request)
     country = await ip_to_country(ip)
-
-    return CountryResponse(ip=ip, country=country)
+    country_response = CountryResponse(ip=ip, country=country)
+    logger.debug(f"Responding to request on /country for {ip=} country={country_response.model_dump()}")
+    return country_response
 
 
 if __name__ == "__main__":
