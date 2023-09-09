@@ -2,14 +2,15 @@ import logging
 import random
 
 import httpx
+from fastapi import Request
 
 from models import GeoIpApi, GeoIpApiRtypeEnum
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("inspector.utils")
 
 GEOIP_API = {
     "country.is": GeoIpApi(
-        url="https://country.is/{ip}",
+        url="https://api.country.is/{ip}",
         rtype=GeoIpApiRtypeEnum.json,
         lookup="country",
     ),
@@ -20,15 +21,27 @@ GEOIP_API = {
         lookup="1",  # index
     ),
     "geoplugin.net": GeoIpApi(
-        url="https://www.geoplugin.net/json.gp?ip={ip}",
+        url="http://www.geoplugin.net/json.gp?ip={ip}",
         rtype=GeoIpApiRtypeEnum.json,
         lookup="geoplugin_countryCode",
     ),
 }
 
 
+def request_to_ip(request: Request) -> str:
+    logger.debug("Getting IP address from request...")
+
+    # get the ip address of the client. First check the proxy headers, then the client host
+    client_ip = request.client.host if request.client else ""
+    proxy_ip = request.headers.get("x-forwarded-for", "")
+    ip = proxy_ip or client_ip
+
+    logger.debug(f"Returning {ip=}")
+    return ip
+
+
 async def ip_to_country(ip: str) -> str:
-    """Return the country code (alpha-2) for an IP address."""
+    logger.debug(f"Getting country code for {ip}...")
     if not ip:
         return ""
 
@@ -50,8 +63,9 @@ async def ip_to_country(ip: str) -> str:
     country = ""  # alpha-2 country code, i.e. "AU"
     # parse the response and lookup the country code
     if geoip_api.rtype == GeoIpApiRtypeEnum.json:
-        country = response.json().get(geoip_api.lookup, "")
+        country = response.json().get(geoip_api.lookup) or ""
     elif geoip_api.rtype == GeoIpApiRtypeEnum.text:
-        country = response.text.split(geoip_api.delimiter)[int(geoip_api.lookup)]
+        country = response.text.split(geoip_api.delimiter)[int(geoip_api.lookup)] or ""
 
+    logger.debug(f"Returning {country=}")
     return country
