@@ -7,7 +7,7 @@
 ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝     ╚══════╝ ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝
 >------------------------------------- API for Inspecting HTTP Requests
 ```
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.103-005571?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110-005571?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
 [![python](https://img.shields.io/badge/python-3.11-%233776AB?style=flat-square&logo=python)](https://www.python.org)
 [![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org)
 [![black](https://img.shields.io/badge/code%20style-black-black.svg?style=flat-square&logo=stylelint)](https://github.com/psf/black)
