@@ -4,19 +4,20 @@ version = "0.1.0"
 description = "API for Inspecting HTTP Requests"
 authors = ["Md Zubair Beg <inspector@zube.dev>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "~3.11"
-fastapi = {extras = ["all"], version = "^0.110.0"}
-uvicorn = {extras = ["standard"], version = "^0.27.1"}
-gunicorn = "^21.2"
+python = "~3.12"
+fastapi = {extras = ["all"], version = "^0.111.0"}
+uvicorn = {extras = ["standard"], version = "^0.30.1"}
+gunicorn = "^22.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
-pre-commit = "^3.6.2"
-black = "^24.2.0"
-mypy = "^1.7.1"
-ruff = "^0.3.0"
+pre-commit = "^3.7.1"
+black = "^24.4.2"
+mypy = "^1.10.1"
+ruff = "^0.5.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -29,7 +30,7 @@ line-length = 120
 line-length = 120
 # https://beta.ruff.rs/docs/rules
 extend-select = ["I", "N", "PT", "UP"]
-target-version = "py311"
+target-version = "py312"
 
 [tool.mypy]
 ignore_missing_imports = true
